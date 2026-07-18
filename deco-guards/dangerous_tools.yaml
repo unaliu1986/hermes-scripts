@@ -1,55 +1,32 @@
-# DECO HITL 危险工具清单 v1.1
-# 模拟 DECO 的 beforeTool Hook — 不可逆操作必须有物理阻断
-# 
-# 匹配顺序（强制）：whitelist FIRST → patterns → 无匹配放行
-# 
-# 阻断级别:
-#   CRITICAL — 必须人工确认，不可跳过
-#   HIGH     — 高风险，需确认 + 输入理由
-#   MEDIUM   — 警告后继续
+# DECO HITL 危险工具清单 v1.2
+# ⚠️ whitelist 使用 fnmatch（glob 通配符），不是 regex。
+# tools[].pattern 使用 regex。
 
-# ═══ 匹配引擎（agent 实现） ═══
-# 1. 对命令做 AST 解析：
-#    a. 拆管道 | 为独立子命令
-#    b. 展开 $(...) 和 `...` 命令替换
-#    c. 展开 $VAR 环境变量
-#    d. 递归检查每个叶子命令
-# 2. 叶子命令先查 whitelist（精确 or 路径通配）→ 命中放行
-# 3. 再查 tools[].pattern → 命中按 level 处理
-# 4. 无匹配 → 放行
-
-# ═══ 安全管道检测 ═══
-# 如果命令包含管道 |，必须拆分子命令逐个匹配。
-# 示例: echo "DROP TABLE" | mysql → 拆成 ["echo ...", "mysql"] → mysql 命中 DROP TABLE 规则 → 阻断
-
-# ═══ 豁免（whitelist） ═══
-# ⚠️ 先于所有规则匹配。仅用于精确无歧义的已知安全操作。
-# 格式: {pattern, cwd, reason}
 whitelist:
-  - pattern: "rm -rf /tmp/*"
+  - glob: "rm -rf /tmp/*"
+    regex: "^rm -rf /tmp/([^/.][^/]*)(/[^/.][^/]*)?$"
     cwd: "/tmp"
-    reason: "临时文件清理"
-  - pattern: "rm -rf /tmp/"
+    reason: "临时文件清理（深度<=2，禁止路径穿越）"
+  - glob: "rm -rf /tmp/"
+    regex: "^rm -rf /tmp/([^/.][^/]*)(/[^/.][^/]*)?$"
     cwd: "/root"
-    reason: "清理临时目录"
-  - pattern: "pkill -f cj_agnes"
+    reason: "清理临时目录（深度<=2，禁止路径穿越）"
+  - glob: "pkill -f cj_agnes*"
     cwd: "/root"
     reason: "CJ Agnes 管线进程管理"
-  - pattern: "pkill -f lix_image"
+  - glob: "pkill -f lix_image*"
     cwd: "/root"
     reason: "LIX 图片管线进程管理"
-  - pattern: "pkill -f gap_screening_v3"
+  - glob: "pkill -f gap_screening_v3*"
     cwd: "/root"
     reason: "GAP 筛选进程管理"
 
-# ═══ 危险工具规则 ═══
 tools:
   - pattern: "pkill|killall|kill -9|kill --"
     description: "杀进程"
     level: CRITICAL
     confirm: "⚠️ 确认要杀进程？PID/名称: {matched}"
     require_reason: true
-    # 注意: whitelist 中的 cj_agnes/lix_image/gap_screening 已豁免
 
   - pattern: "rm -rf|rm -r"
     description: "递归删除目录"
@@ -58,7 +35,6 @@ tools:
     options:
       - "确认删除"
       - "取消"
-    # 注意: whitelist 中的 /tmp/* 已豁免
 
   - pattern: "systemctl.*(restart|stop).*hermes"
     description: "重启/停止 Hermes 服务"
@@ -94,21 +70,19 @@ tools:
     options:
       - "确认"
       - "取消"
-    pipe_detect: true
 
   - pattern: "\\bmysql\\b|\\bpsql\\b|\\bsqlite3\\b"
     description: "数据库命令行工具"
     level: HIGH
-    confirm: "确认要直接操作数据库 {matched}？"
+    confirm: "确认要直接操作数据库？"
     options:
       - "确认"
       - "取消"
-    # 子规则：配合父规则，mysql/psql 出现在管道中时按此处理
 
   - pattern: "git push.*(main|master)"
     description: "推送到主分支"
     level: HIGH
-    confirm: "确认推送到主分支？建议先 push 到 feature 分支或走 PR。"
+    confirm: "确认推送到主分支？建议先走 PR。"
     options:
       - "确认推送"
       - "改为 PR"
