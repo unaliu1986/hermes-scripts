@@ -1,0 +1,31 @@
+{
+  "_schema": "1.0",
+  "_description": "操作意图卡 — 任何 Agent 可能理解偏差的操作，执行前必须填写并获用户确认。",
+  "manifest_id": "",
+  "created_at": "",
+
+  "user_request": "",
+  "agent_understanding": "",
+  "ambiguity_points": [],
+
+  "actions": [
+    {
+      "label": "",
+      "type": "script_exec|file_write|api_call|config_change|multi_step",
+      "target": "",
+      "params": {},
+      "platform": "",
+      "expected_outcome": "",
+      "risk_if_wrong": ""
+    }
+  ],
+
+  "risk_assessment": {
+    "is_reversible": false,
+    "rollback_plan": "",
+    "estimated_duration": ""
+  },
+
+  "user_confirmed": false,
+  "confirmed_at": null
+}
