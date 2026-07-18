@@ -1,0 +1,16 @@
+{
+  "_schema": "3.0",
+  "_description": "DECO Attachment 注入 — Qwen审计修复完成",
+  "pending_checks": [],
+  "completed_count": 6,
+  "completed": [
+    {"id": "fix1", "issue": "side_effects.json schema 对齐 SKILL.md", "time": "2026-07-18T09:05"},
+    {"id": "fix2", "issue": "dangerous_tools.yaml 白名单先于规则匹配", "time": "2026-07-18T09:06"},
+    {"id": "fix3", "issue": "guard-dangerous 管道拆分 + AST解析", "time": "2026-07-18T09:07"},
+    {"id": "fix4", "issue": "side-effect-collector 主动轮询→事件驱动", "time": "2026-07-18T09:08"},
+    {"id": "fix5", "issue": "fail-asymmetric 幂等保护", "time": "2026-07-18T09:09"},
+    {"id": "fix6", "issue": "guard-shortcuts 去掉行数断层+误报修复", "time": "2026-07-18T09:10"}
+  ],
+  "last_updated": "2026-07-18T09:10:00",
+  "auto_inject": true
+}
